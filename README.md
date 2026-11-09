@@ -5,7 +5,7 @@
 ## 已实现
 
 - 默认及非默认输入/输出设备音量、支持设备的静音、默认设备切换。
-- 菜单栏入口，关闭窗口后继续运行，托盘及设置页可恢复原声和退出。
+- 菜单栏入口，点击图标在附近弹出面板，自动避开屏幕边缘并适配可用高度；启动时隐藏，托盘及设置页可恢复原声和退出。
 - 正在播放的应用列表，独立音量、静音、规则保存与重启后的显式恢复。
 - Process Tap、私有 aggregate device、实时平滑增益；100% 且未静音时恢复系统播放路径。
 - 设备或进程变化、采样率变化和回调异常时尝试停止接管，提供重新应用规则操作。
@@ -23,10 +23,13 @@ make dev              # 启动真实桌面应用
 make preview          # 浏览器界面预览，使用模拟数据
 make verify           # 检查及测试，不播放声音或修改设备音量
 make build            # 构建 release .app 和 .dmg
+make install-app      # 构建 release 并安装到 /Applications
 make open             # 打开已构建的 release 应用
 make build-debug      # 构建 debug .app 和 .dmg
 make open PROFILE=debug
 ```
+
+`make install` 仅安装项目依赖；`make install-app` 先执行 `make build`，构建成功后将应用复制到 `/Applications/Mac Voice Mix.app`，再次执行会更新已有应用。更新前请从菜单栏退出正在运行的旧版本，安装后可在“应用程序”中打开。安装目录可自定义，例如 `make install-app INSTALL_DIR="$HOME/Applications"`。此命令始终安装 release 版本。
 
 `make test-native-write` 会短暂修改默认设备音量后恢复；`make probe-signal` 会播放低音量测试音并验证应用混音。这两个目标需要显式执行，不包含在 `make verify` 中。`make clean` 清理构建产物，保留依赖和用户设置。
 

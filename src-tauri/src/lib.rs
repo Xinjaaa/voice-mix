@@ -1,5 +1,7 @@
 mod backend;
+mod popup;
 use backend::Backend;
+use popup::show;
 use serde_json::{json, Value};
 use tauri::{
     menu::{Menu, MenuItem},
@@ -19,12 +21,6 @@ async fn quit_app(app: tauri::AppHandle, backend: tauri::State<'_, Backend>) -> 
     backend.request(json!({"op":"shutdown"})).await?;
     app.exit(0);
     Ok(())
-}
-fn show(app: &tauri::AppHandle) {
-    if let Some(window) = app.get_webview_window("mixer") {
-        let _ = window.show();
-        let _ = window.set_focus();
-    }
 }
 fn exit_after_restore(app: tauri::AppHandle) {
     tauri::async_runtime::spawn(async move {
@@ -74,7 +70,7 @@ pub fn run() {
                     }
                 }
             }
-            TrayIconBuilder::new()
+            TrayIconBuilder::with_id("mixer-tray")
                 .icon(tauri::image::Image::new_owned(pixels, 32, 32))
                 .icon_as_template(true)
                 .tooltip("Mac Voice Mix")
@@ -102,10 +98,11 @@ pub fn run() {
                     if let TrayIconEvent::Click {
                         button: MouseButton::Left,
                         button_state: MouseButtonState::Up,
+                        rect,
                         ..
                     } = event
                     {
-                        show(tray.app_handle());
+                        popup::show_at(tray.app_handle(), Some(rect));
                     }
                 })
                 .build(app)?;

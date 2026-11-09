@@ -7,10 +7,12 @@ PYTHON ?= python3
 CARGO_MANIFEST := src-tauri/Cargo.toml
 PROFILE ?= release
 APP_PATH = src-tauri/target/$(PROFILE)/bundle/macos/Mac Voice Mix.app
+INSTALL_DIR ?= /Applications
+RELEASE_APP_PATH := src-tauri/target/release/bundle/macos/Mac Voice Mix.app
 
 # Serialize aggregate targets so Cargo checks and builds do not contend for locks.
 .NOTPARALLEL:
-.PHONY: help install dev preview build build-debug build-web open check typecheck fmt fmt-check lint test test-web test-rust test-native test-native-write probe-signal verify clean
+.PHONY: help install install-app dev preview build build-debug build-web open check typecheck fmt fmt-check lint test test-web test-rust test-native test-native-write probe-signal verify clean
 
 help: ## Show available commands (default).
 	@awk 'BEGIN { FS = ":.*## "; print "Usage: make <target>\n" } /^[a-zA-Z0-9_-]+:.*## / { printf "  %-20s %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
@@ -27,6 +29,12 @@ preview: ## Start browser UI preview with simulated audio devices.
 
 build: ## Build release macOS app and DMG.
 	$(PNPM) build:mac
+
+install-app: build ## Build release app and install it into /Applications.
+	@test -d "$(RELEASE_APP_PATH)" || { printf 'App not found: %s\n' "$(RELEASE_APP_PATH)" >&2; exit 1; }
+	mkdir -p "$(INSTALL_DIR)"
+	ditto "$(RELEASE_APP_PATH)" "$(INSTALL_DIR)/Mac Voice Mix.app"
+	@printf 'Installed: %s/Mac Voice Mix.app\n' "$(INSTALL_DIR)"
 
 build-debug: ## Build debug macOS app and DMG.
 	$(PNPM) tauri build --debug --bundles app,dmg
