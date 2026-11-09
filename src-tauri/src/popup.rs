@@ -1,4 +1,44 @@
+use std::{
+    sync::Mutex,
+    time::{Duration, Instant},
+};
 use tauri::{Manager, PhysicalPosition, PhysicalSize, Rect};
+
+#[derive(Default)]
+pub struct PopupState {
+    last_hidden: Mutex<Option<Instant>>,
+}
+
+pub fn hide(app: &tauri::AppHandle) {
+    let Some(window) = app.get_webview_window("mixer") else {
+        return;
+    };
+    if window.is_visible().unwrap_or(false) {
+        if let Ok(mut last) = window.state::<PopupState>().last_hidden.lock() {
+            *last = Some(Instant::now());
+        }
+        let _ = window.hide();
+    }
+}
+
+pub fn toggle(app: &tauri::AppHandle, anchor: Rect) {
+    let Some(window) = app.get_webview_window("mixer") else {
+        return;
+    };
+    // Clicking the tray may blur the panel before the mouse-up event arrives.
+    let just_hidden = app
+        .state::<PopupState>()
+        .last_hidden
+        .lock()
+        .ok()
+        .and_then(|last| *last)
+        .is_some_and(|last| last.elapsed() < Duration::from_millis(300));
+    if window.is_visible().unwrap_or(false) || just_hidden {
+        hide(app);
+    } else {
+        show_at(app, Some(anchor));
+    }
+}
 
 const EDGE_GAP: f64 = 8.0;
 const TRAY_GAP: f64 = 6.0;

@@ -13,9 +13,8 @@ fn main() {
         }
         println!("cargo:rerun-if-changed=../native/macos");
     }
-    tauri_build::try_build(
-        tauri_build::Attributes::new()
-            .app_manifest(tauri_build::AppManifest::new().commands(&["audio_request", "quit_app"])),
-    )
+    tauri_build::try_build(tauri_build::Attributes::new().app_manifest(
+        tauri_build::AppManifest::new().commands(&["audio_request", "quit_app", "hide_panel"]),
+    ))
     .expect("Tauri build configuration is invalid");
 }

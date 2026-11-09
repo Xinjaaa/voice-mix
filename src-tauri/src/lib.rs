@@ -17,6 +17,10 @@ async fn audio_request(
     backend.request(request).await
 }
 #[tauri::command]
+fn hide_panel(window: tauri::Window) {
+    popup::hide(window.app_handle());
+}
+#[tauri::command]
 async fn quit_app(app: tauri::AppHandle, backend: tauri::State<'_, Backend>) -> Result<(), String> {
     backend.request(json!({"op":"shutdown"})).await?;
     app.exit(0);
@@ -47,8 +51,13 @@ pub fn run() {
     }
     tauri::Builder::default()
         .plugin(tauri_plugin_single_instance::init(|app, _, _| show(app)))
-        .invoke_handler(tauri::generate_handler![audio_request, quit_app])
+        .invoke_handler(tauri::generate_handler![
+            audio_request,
+            quit_app,
+            hide_panel
+        ])
         .setup(|app| {
+            app.manage(popup::PopupState::default());
             #[cfg(target_os = "macos")]
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
             let path = app.path().app_config_dir()?.join("preferences.json");
@@ -102,17 +111,19 @@ pub fn run() {
                         ..
                     } = event
                     {
-                        popup::show_at(tray.app_handle(), Some(rect));
+                        popup::toggle(tray.app_handle(), rect);
                     }
                 })
                 .build(app)?;
             Ok(())
         })
-        .on_window_event(|window, event| {
-            if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+        .on_window_event(|window, event| match event {
+            tauri::WindowEvent::CloseRequested { api, .. } => {
                 api.prevent_close();
-                let _ = window.hide();
+                popup::hide(window.app_handle());
             }
+            tauri::WindowEvent::Focused(false) => popup::hide(window.app_handle()),
+            _ => {}
         })
         .build(tauri::generate_context!())
         .expect("Unable to build Mac Voice Mix")
