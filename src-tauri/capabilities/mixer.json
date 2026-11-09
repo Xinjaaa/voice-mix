@@ -1,0 +1,13 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "mixer",
+  "description": "Local mixer window access",
+  "windows": [
+    "mixer"
+  ],
+  "permissions": [
+    "core:default",
+    "allow-audio-request",
+    "allow-quit-app"
+  ]
+}

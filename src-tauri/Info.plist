@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+<key>NSAudioCaptureUsageDescription</key><string>Mac Voice Mix 需要捕获应用输出音频，在本机实时调整各应用音量。音频不会保存或上传。</string>
+</dict></plist>
